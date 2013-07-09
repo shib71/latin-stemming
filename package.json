@@ -1,0 +1,28 @@
+{
+  "name": "latin-stemming",
+  "version": "0.0.1",
+  "description": "Functions for getting and comparing Latin word stems.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap ./test"
+  },
+  "dependencies" : {
+    
+  },
+  "devDependencies": {
+    "tap": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/shib71/latin-stemming.git"
+  },
+  "keywords": [
+    "latin",
+    "stemming"
+  ],
+  "author": "Blair McKenzie <shib71@gmail.com>",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/shib71/latin-stemming/issues"
+  }
+}
