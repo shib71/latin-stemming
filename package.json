@@ -10,7 +10,8 @@
     
   },
   "devDependencies": {
-    "tap": "*"
+    "tap": "*",
+    "split": "*"
   },
   "repository": {
     "type": "git",

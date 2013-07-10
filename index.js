@@ -1,21 +1,28 @@
+module.exports.quewords = [
+  'atque','quoque','neque','itaque','absque','apsque','abusque','adaeque','adusque','denique', 
+  'deque','susque','oblique','peraeque','plenisque','quandoque','quisque','quaeque', 
+  'cuiusque','cuique','quemque','quamque','quaque','quique','quorumque','quarumque',
+  'quibusque','quosque','quasque','quotusquisque','quousque','ubique','undique','usque', 
+  'uterque','utique','utroque','utribique','torque','coque','concoque','contorque',
+  'detorque','decoque','excoque','extorque','obtorque','optorque','retorque','recoque',
+  'attorque','incoque','intorque','praetorque','que'
+];
 
-module.exports.quewords = ['atque','quoque','neque','itaque','absque','apsque','abusque','adaeque','adusque','denique', 
-                           'deque','susque','oblique','peraeque','plenisque','quandoque','quisque','quaeque', 
-                           'cuiusque','cuique','quemque','quamque','quaque','quique','quorumque','quarumque',
-                           'quibusque','quosque','quasque','quotusquisque','quousque','ubique','undique','usque', 
-                           'uterque','utique','utroque','utribique','torque','coque','concoque','contorque',
-                           'detorque','decoque','excoque','extorque','obtorque','optorque','retorque','recoque',
-                           'attorque','incoque','intorque','praetorque'];
+module.exports.nounsuffixes = [
+  /ibus$/,/ius$/,/ae$/,/am$/,/as$/,/em$/,/es$/,/ia$/,/is$/,
+  /nt$/,/os$/,/ud$/,/um$/,/us$/,/a$/,/e$/,/i$/,/o$/,/u$/,/$/
+];
 
-module.exports.nounsuffixes = [/ibus$/,/ius$/,/ae$/,/am$/,/as$/,/em$/,/es$/,/ia$/,/is$/,
-                               /nt$/,/os$/,/ud$/,/um$/,/us$/,/a$/,/e$/,/i$/,/o$/,/u$/];
-
-module.exports.verbsuffixes = [[/iuntur$/,"i"], [/beris$/,"bi"], [/erunt$/,"i"], [/untur$/,"i"] , [/iunt$/,"i"],
-                               [/mini$/,""], [/untur$/,"i"], [/stis$/,""], [/bor$/,"bi"], [/ero$/,"eri"], [/mur$/,""],
-                               [/mus$/,""], [/ris$/,""], [/sti$/,""], [/tis$/,""], [/tur$/,""], [/unt$/,"i"],
-                               [/bo$/,"bi"], [/ns$/,""], [/nt$/,""], [/ri$/,""], [/m$/,""], [/r$/,""], [/s$/,""], [/t$/,""]];
+module.exports.verbsuffixes = [
+  [/iuntur$/,"i"], [/beris$/,"bi"], [/erunt$/,"i"], [/untur$/,"i"] , [/iunt$/,"i"],
+  [/mini$/,""], [/ntur$/,""], [/stis$/,""], [/bor$/,"bi"], [/ero$/,"eri"], [/mur$/,""],
+  [/mus$/,""], [/ris$/,""], [/sti$/,""], [/tis$/,""], [/tur$/,""], [/unt$/,"i"],
+  [/bo$/,"bi"], [/ns$/,""], [/nt$/,""], [/ri$/,""], [/m$/,""], [/r$/,""], [/s$/,""], [/t$/,""], [/$/,""]
+];
 
 module.exports.stem = function(word,config){
+  config = config || {};
+  
   var quewords = config.quewords || module.exports.quewords;
   var nounsuffixes = config.nounsuffixes || module.exports.nounsuffixes;
   var verbsuffixes = config.verbsuffixes || module.exports.verbsuffixes;
@@ -35,7 +42,7 @@ module.exports.stem = function(word,config){
   // noun de-suffixing
   if (type=="Unknown" || type=="Noun" || type=="Adjective" || type=="Adverb"){
     for (var i=0; i<nounsuffixes.length; i++){
-      if (stem.search(nounsuffixes[i])>-1){
+      if (stem.slice(2).search(nounsuffixes[i])>-1){
         results.push(stem.replace(nounsuffixes[i],''));
         i = nounsuffixes.length;
       }
@@ -45,7 +52,7 @@ module.exports.stem = function(word,config){
   // verb de-suffixing
   if (type=="Unknown" || type=="Verb"){
     for (var i=0; i<verbsuffixes.length; i++){
-      if (stem.search(verbsuffixes[i][0])>-1){
+      if (stem.slice(2).search(verbsuffixes[i][0])>-1){
         results.push(stem.replace(verbsuffixes[i][0],verbsuffixes[i][1]));
         i = verbsuffixes.length;
       }
@@ -59,6 +66,8 @@ module.exports.stem = function(word,config){
 };
 
 module.exports.couchkey = function(config){
+  config = config || {};
+  
   config.condition = config.condition || "";
   config.quewords = config.quewords || module.exports.quewords;
   config.nounsuffixes = config.nounsuffixes || module.exports.nounsuffixes;
@@ -72,7 +81,9 @@ module.exports.couchkey = function(config){
     "nounsuffixes=",JSON.stringify(config.quewords),",",
     "verbsuffixes=",JSON.stringify(config.verbsuffixes),",",
     "wordkey=",JSON.stringify(config.wordkey),",",
-    "typekey=",JSON.stringify(config.typekey),";"
+    "typekey=",JSON.stringify(config.typekey),",",
+    "word=doc[wordkey],"
+    "type=doc[typekey] || 'Unknown';"
   ];
   
   if (config.condition.length){
@@ -82,7 +93,7 @@ module.exports.couchkey = function(config){
   }
   
   // normalize word value
-  fn.push("var stem=doc[wordkey].replace(/j/g,'i').replace(/v/g,'u');");
+  fn.push("var stem=word.replace(/j/g,'i').replace(/v/g,'u');");
   
   // -que words - some are atomic, others are 'and'
   fn.push("if (stem.slice(-3)=='que'){");
@@ -98,7 +109,7 @@ module.exports.couchkey = function(config){
   // noun de-suffixing
   fn.push("if (doc[typekey]=='Noun' || doc[typekey]=='Adjective' || doc[typekey]=='Adverb'){");
   fn.push("  for (var i=0; i<nounsuffixes.length; i++){");
-  fn.push("    if (stem.search(nounsuffixes[i])>-1){");
+  fn.push("    if (stem.slice(2).search(nounsuffixes[i])>-1){");
   fn.push("      stem = stem.replace(nounsuffixes[i],'');");
   fn.push("      i = nounsuffixes.length;");
   fn.push("    }");
@@ -108,7 +119,7 @@ module.exports.couchkey = function(config){
   // verb de-suffixing
   fn.push("if (doc[typekey]==='Verb'){");
   fn.push("  for (var i=0; i<verbsuffixes.length; i++){");
-  fn.push("    if (stem.search(verbsuffixes[i][0])>-1){");
+  fn.push("    if (stem.slice(2).search(verbsuffixes[i][0])>-1){");
   fn.push("      stem = stem.replace(verbsuffixes[i][0],verbsuffixes[i][1]);");
   fn.push("      i = verbsuffixes.length;");
   fn.push("    }");
