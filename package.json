@@ -1,6 +1,6 @@
 {
   "name": "latin-stemming",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Functions for getting and comparing Latin word stems.",
   "main": "index.js",
   "scripts": {
