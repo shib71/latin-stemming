@@ -82,7 +82,7 @@ module.exports.couchkey = function(config){
     "verbsuffixes=",JSON.stringify(config.verbsuffixes),",",
     "wordkey=",JSON.stringify(config.wordkey),",",
     "typekey=",JSON.stringify(config.typekey),",",
-    "word=doc[wordkey],"
+    "word=doc[wordkey],",
     "type=doc[typekey] || 'Unknown';"
   ];
   
